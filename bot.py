@@ -4,6 +4,7 @@ from selenium import  webdriver
 class Instagram:
     def __init__(self):
         self.driver = webdriver.Chrome(executable_path="/chromedriver.exe")
+        self.driver.maximize_window()
         self.driver.get(url="https://www.instagram.com")
         self.is_logged_in = False
         self.is_in_user_profile = False
