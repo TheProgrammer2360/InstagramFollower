@@ -64,9 +64,13 @@ class Instagram:
 
     def go_to_user_url(self, url: str) -> None:
         """makes sure that the user is signed in or else throw an exception"""
-        pass
-
+        if not self.is_logged_in:
+            raise InstagramException("Not Logged In")
+        self.driver.get(url=url)
     def go_to_followers(self) -> None:
         """requires the user to be signed in and with to be a user profile"""
         pass
 
+class InstagramException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
