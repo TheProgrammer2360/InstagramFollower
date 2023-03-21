@@ -8,4 +8,5 @@ password = os.environ["PASSWORD"]
 
 value = mybot.login_with_facebook(password=password, username=phone_number)
 mybot.go_to_user_url("https://www.instagram.com/kaymo_black/")
+mybot.go_to_followers()
 time.sleep(3600)

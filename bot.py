@@ -67,10 +67,37 @@ class Instagram:
         if not self.is_logged_in:
             raise InstagramException("Not Logged In")
         self.driver.get(url=url)
+        self.is_in_user_profile = True
+
     def go_to_followers(self) -> None:
         """requires the user to be signed in and with to be a user profile"""
-        pass
+        # raise the exception when th user is not the profile
+        if not self.is_in_user_profile:
+            raise InstagramException("Not in a user profile")
+        # when user in on the profile
+        # wait maximum of 10 seconds for followers link to be available
+        xpath = "/html/body/div[2]/div/div/div[1]/div/div/div" \
+                "/div[1]/div[1]/div[2]/section/main/div/header/section/ul/li[2]/a"
+        try:
+            WebDriverWait(self.driver, 10).until(
+                ec.presence_of_element_located((By.XPATH, xpath))
+            )
+        except TimeoutException:
+            # when it is still not there, stop the program because it means that there is low internet
+            raise InstagramSlowInternet("Your internet is slow, please try again")
+        else:
+            # When the followers link has been found
+            followers_link = self.driver.find_element(By.XPATH, xpath)
+            followers_link.click()
+            self.on_followers = True
+            self.is_in_user_profile = False
+
 
 class InstagramException(Exception):
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class InstagramSlowInternet(Exception):
     def __init__(self, message):
         super().__init__(message)
