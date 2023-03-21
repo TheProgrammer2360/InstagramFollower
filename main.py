@@ -6,5 +6,6 @@ mybot = Instagram()
 phone_number = os.environ["PHONENUMBER"]
 password = os.environ["PASSWORD"]
 
-mybot.login_with_facebook(password=password, username=phone_number)
+value = mybot.login_with_facebook(password=password, username=phone_number)
+print(value)
 time.sleep(3600)
