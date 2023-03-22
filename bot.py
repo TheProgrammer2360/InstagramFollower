@@ -97,6 +97,8 @@ class Instagram:
 
     def follow_everyone(self) -> None:
         """will follow everyone not followed"""
+        if not self.on_followers:
+            raise InstagramException("Not on followers page")
         actions = ActionChains(self.driver)
         # get all the buttons with follow text
         buttons_with_follow = [button for button in self.driver.find_elements(By.TAG_NAME, "button") if button.text ==
