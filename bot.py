@@ -1,8 +1,11 @@
-from selenium import  webdriver
+import time
+from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.support import expected_conditions as ec
+from selenium.webdriver.common.action_chains import ActionChains
+
 
 class Instagram:
     def __init__(self):
@@ -41,8 +44,8 @@ class Instagram:
         login_button.click()
 
         # waiting for 'Turn on Notifications' in order to confirm that I have logged in
-        header_xpath = "/html/body/div[2]/div/div/div[2]/div/div/div[1]/div/div[2]" \
-                       "/div/div/div/div/div[2]/div/div/div[2]/h2"
+        header_xpath = "/html/body/div[2]/div/div/div[2]/div/div/div[1]/div" \
+                       "/div[2]/div/div/div/div/div[2]/div/div/div[2]/span"
         not_now_button_xpath = "/html/body/div[2]/div/div/div[2]/div/div/div[1]" \
                                "/div/div[2]/div/div/div/div/div[2]/div/div/div[3]/button[2]"
         # wait 10 seconds for the header to appear
@@ -91,6 +94,32 @@ class Instagram:
             followers_link.click()
             self.on_followers = True
             self.is_in_user_profile = False
+
+    def follow_everyone(self) -> None:
+        """will follow everyone not followed"""
+        actions = ActionChains(self.driver)
+        # get all the buttons with follow text
+        buttons_with_follow = [button for button in self.driver.find_elements(By.TAG_NAME, "button") if button.text ==
+                               "Follow"]
+        # scroll to the last one
+        actions.move_to_element(buttons_with_follow[-1]).perform()
+        prev_last = buttons_with_follow[-1]
+        # repeating the process until we reach the last user
+        continue_scrolling = True
+        while continue_scrolling:
+            buttons_with_follow = [button for button in self.driver.find_elements(By.TAG_NAME, "button") if
+                                   button.text ==
+                                   "Follow"]
+            # scroll to the last one
+            actions.move_to_element(buttons_with_follow[-1]).perform()
+            # wait 5 seconds for the other elements to load
+            time.sleep(2)
+            # checking if we are on the last element
+            if prev_last == buttons_with_follow[-1]:
+                continue_scrolling = False
+            else:
+                # update the new last element
+                prev_last = buttons_with_follow[-1]
 
 
 class InstagramException(Exception):
