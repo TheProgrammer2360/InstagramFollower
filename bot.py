@@ -3,6 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import ElementClickInterceptedException,StaleElementReferenceException
 from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.action_chains import ActionChains
 
@@ -98,30 +99,39 @@ class Instagram:
     def follow_everyone(self) -> None:
         """will follow everyone not followed"""
         if not self.on_followers:
-            raise InstagramException("Not on followers page")
+            raise InstagramException("The followers tab is not open")
         actions = ActionChains(self.driver)
-        # get all the buttons with follow text
-        buttons_with_follow = [button for button in self.driver.find_elements(By.TAG_NAME, "button") if button.text ==
-                               "Follow"]
-        # scroll to the last one
-        actions.move_to_element(buttons_with_follow[-1]).perform()
-        prev_last = buttons_with_follow[-1]
-        # repeating the process until we reach the last user
-        continue_scrolling = True
-        while continue_scrolling:
-            buttons_with_follow = [button for button in self.driver.find_elements(By.TAG_NAME, "button") if
-                                   button.text ==
-                                   "Follow"]
-            # scroll to the last one
-            actions.move_to_element(buttons_with_follow[-1]).perform()
-            # wait 5 seconds for the other elements to load
+        scrolled_into_list = list()
+        xpath = "/html/body/div[2]/div/div/div[1]/div/div/div/div[1]/div[1]/div[2]" \
+                "/section/main/div/header/section/div[1]/div[1]/div/div[1]/button"
+        following_not_wanted = self.driver.find_element(By.XPATH, xpath)
+        while True:
+            # get all the buttons with following or follow text
+            buttons = [button for button in self.driver.find_elements(By.TAG_NAME, "button") if (button.text == "Follow" or button.text == "Following") and button != following_not_wanted]
+            if len(scrolled_into_list) != 0:
+                # condition to stop the while loop when the list is not updating
+                if buttons[-1] == scrolled_into_list[-1]:
+                    break
+            for button in buttons:
+                if button not in scrolled_into_list:
+                    try:
+                        # move to the button
+                        actions.move_to_element(button).perform()
+                        # update that you have scrolled into the element
+                        scrolled_into_list.append(button)
+                        # if it is  follow button, click it
+                        if button.text == "Follow":
+                            try:
+                                button.click()
+                            except ElementClickInterceptedException:
+                                pass
+                            # wait 1 second so it acts like human
+                            time.sleep(1)
+                    except StaleElementReferenceException:
+                        # suggested for you option also has follow but cannot be scrolled into
+                        pass
+            # wait 3 seconds for the new list to load
             time.sleep(2)
-            # checking if we are on the last element
-            if prev_last == buttons_with_follow[-1]:
-                continue_scrolling = False
-            else:
-                # update the new last element
-                prev_last = buttons_with_follow[-1]
 
 
 class InstagramException(Exception):
